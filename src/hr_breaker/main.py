@@ -439,6 +439,10 @@ if "last_result" in st.session_state:
                         )
                         pdf_storage.save_record(pdf_record)
 
+                        # Preserve English HTML on first translation
+                        if "english_html" not in st.session_state["last_result"]:
+                            st.session_state["last_result"]["english_html"] = optimized.html
+
                         # Update session state with translated result
                         st.session_state["last_result"] = {
                             **st.session_state["last_result"],

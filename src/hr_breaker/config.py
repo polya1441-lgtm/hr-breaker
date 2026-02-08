@@ -10,9 +10,12 @@ from pydantic_ai_litellm import LiteLLMModel
 
 import litellm
 
+from hr_breaker import litellm_patch
+
 load_dotenv()
 
 litellm.suppress_debug_info = True
+litellm_patch.apply()
 
 # Backward compat: map GOOGLE_API_KEY -> GEMINI_API_KEY for litellm
 if "GEMINI_API_KEY" not in os.environ and os.environ.get("GOOGLE_API_KEY"):

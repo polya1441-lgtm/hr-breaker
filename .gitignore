@@ -1,4 +1,5 @@
 output/
+*.pdf
 
 # Python
 __pycache__/

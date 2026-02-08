@@ -55,7 +55,8 @@ src/hr_breaker/
 ├── orchestration.py # Core optimization loop
 ├── main.py          # Streamlit UI
 ├── cli.py           # Click CLI
-└── config.py        # Settings
+├── config.py        # Settings
+└── litellm_patch.py # Monkey-patch for pydantic-ai-litellm vision support
 ```
 
 ### Agents
@@ -114,6 +115,16 @@ uv run pytest tests/
 - LLM generates HTML body → WeasyPrint renders to PDF
 - Templates in `templates/` (resume_wrapper.html, resume_guide.md)
 - Name extraction uses LLM - handles any input format
+
+### pydantic-ai-litellm Vision Bug
+
+`pydantic-ai-litellm` v0.2.3 does not support vision/`BinaryContent`. When an agent receives a list with text + `BinaryContent` (image), the library stringifies the image object (`str(item)`) instead of base64-encoding it into an OpenAI-compatible `image_url` part. The model receives garbage text like `"BinaryContent(data=b'\\x89PNG...')"` and never sees the actual image.
+
+This breaks `combined_reviewer` which sends a rendered resume PNG for visual quality assessment.
+
+Fix: `litellm_patch.py` monkey-patches `LiteLLMModel._map_messages` to properly convert `BinaryContent` images to `{"type": "image_url", "image_url": {"url": "data:image/png;base64,..."}}`. Applied at startup via `config.py`. Remove when upstream fixes the bug.
+
+Repro: `uv run python scripts/repro_vision_bug.py` (without patch) vs `uv run python scripts/repro_vision_bug.py --patch` (with patch).
 
 ### Environment Variables
 
